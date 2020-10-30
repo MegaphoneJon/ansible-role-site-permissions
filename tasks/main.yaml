@@ -1,0 +1,43 @@
+- name: Grant www-data user access to the parent folder
+  acl:
+    path: "{{ webroot }}/.."
+    entity: www-data
+    etype: user
+    permissions: rx
+    state: present
+    recalculate_mask: no_mask
+  become_user: root
+  tags: acl
+
+- name: Grant www-data user access to the webroot
+  acl:
+    path: "{{ webroot }}"
+    entity: www-data
+    etype: user
+    permissions: rx
+    recursive: yes
+    state: present
+    recalculate_mask: no_mask
+  become_user: root
+  tags: acl
+
+- name: Set default ACLs for files under the webroot
+  acl:
+    path: "{{ webroot }}"
+    entity: www-data
+    etype: user
+    permissions: rx
+    recursive: yes
+    default: yes
+    state: present
+    recalculate_mask: no_mask
+  become_user: root
+  tags: acl
+
+- name: Set file owner
+  file:
+    dest: "{{ webroot }}"
+    owner: "{{ run_as_user }}"
+    group: "{{ run_as_user }}"
+    recurse: yes
+  become_user: root
