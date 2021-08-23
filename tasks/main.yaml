@@ -37,6 +37,9 @@
   become_user: root
   tags: acl
 
+# Also maybe:
+# setfacl --no-mask --recursive -m g::rwx example.org/web
+
 - name: Set file owner
   file:
     dest: "{{ webroot }}"
