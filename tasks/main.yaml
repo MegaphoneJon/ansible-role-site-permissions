@@ -8,7 +8,6 @@
     state: present
     recalculate_mask: no_mask
   become_user: root
-  tags: acl
 
 # setfacl --recursive -m u:www-data:rx example.org/web
 - name: Grant www-data user access to the webroot
@@ -21,7 +20,6 @@
     state: present
     recalculate_mask: no_mask
   become_user: root
-  tags: acl
 
 # setfacl --default --no-mask --recursive -m u:www-data:rx example.org/web
 - name: Set default ACLs for files under the webroot
@@ -35,15 +33,40 @@
     state: present
     recalculate_mask: no_mask
   become_user: root
-  tags: acl
 
-# Also maybe:
-# setfacl --no-mask --recursive -m g::rwx example.org/web
+# setfacl --default --no-mask --recursive -m g::rw example.org/web
+- name: Set default ACLs for files under the webroot
+  acl:
+    path: "{{ webroot }}"
+    entity: "{{ run_as_user }}"
+    etype: group
+    permissions: rw
+    recursive: yes
+    default: yes
+    state: present
+    recalculate_mask: no_mask
+  become_user: root
+
 
 - name: Set file owner
   file:
-    dest: "{{ webroot }}"
+    path: "{{ webroot }}"
     owner: "{{ run_as_user }}"
     group: "{{ run_as_user }}"
     recurse: yes
   become_user: root
+
+- name: Find all directories
+  find:
+    paths: "{{ webroot }}"
+    file_type: directory
+  register: directories
+  tags: file-perm-debug
+
+- name: Set sticky bit on directories
+  file:
+    path: "{{ item.path }}"
+    mode: g+s
+  become_user: root
+  with_items: "{{ directories.files }}"
+  tags: file-perm-debug
