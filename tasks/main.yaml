@@ -53,19 +53,31 @@
     owner: "{{ run_as_user }}"
     group: "{{ run_as_user }}"
     recurse: yes
-  become_user: root
+  when: "{{ false if run_as_user == ansible_user else true }}"
 
 - name: Find all directories
   find:
     paths: "{{ webroot }}"
     file_type: directory
   register: directories
-  tags: file-perm-debug
 
 - name: Set sticky bit on directories
   file:
     path: "{{ item.path }}"
     mode: g+s
-  become_user: root
   with_items: "{{ directories.files }}"
-  tags: file-perm-debug
+
+- name: Find all static assets
+  find:
+    paths: "{{ webroot }}"
+    patterns: '*.js,*.css,*.pdf,*.jpeg,*.jpg,*.gif,*.html,*.ico'
+  register: static_assets
+
+- debug:
+   var: static_assets
+
+- name: Make assets world-readable
+  file:
+    path: "{{ item.path }}"
+    mode: ugo+r
+  with_items: "{{ static_assets.files }}"
