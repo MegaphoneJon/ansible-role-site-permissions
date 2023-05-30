@@ -7,7 +7,7 @@
     permissions: rx
     state: present
     recalculate_mask: no_mask
-  when: "{{ false if run_as_user == ansible_user else true }}"
+  when: run_as_user != ansible_user
 
 # setfacl --recursive -m u:www-data:rx example.org/web
 - name: Grant www-data user access to the webroot
@@ -19,7 +19,7 @@
     recursive: yes
     state: present
     recalculate_mask: no_mask
-  when: "{{ false if run_as_user == ansible_user else true }}"
+  when: run_as_user != ansible_user
 
 # setfacl --default --no-mask --recursive -m u:www-data:rx example.org/web
 - name: Set default ACLs for files under the webroot
@@ -32,7 +32,7 @@
     default: yes
     state: present
     recalculate_mask: no_mask
-  when: "{{ false if run_as_user == ansible_user else true }}"
+  when: run_as_user != ansible_user
 
 # setfacl --default --no-mask --recursive -m g::rw example.org/web
 - name: Set default ACLs for files under the webroot
@@ -45,7 +45,18 @@
     default: yes
     state: present
     recalculate_mask: no_mask
-  when: "{{ false if run_as_user == ansible_user else true }}"
+  when: run_as_user != ansible_user
+
+  # setfacl --mask --recursive -m m::r-x example.org/web
+- name: Set default mask correctly
+  acl:
+    path: "{{ webroot }}"
+    etype: mask
+    permissions: rx
+    recursive: yes
+    state: present
+    recalculate_mask: mask
+  when: run_as_user != ansible_user
 
 - name: Set file owner
   file:
@@ -53,7 +64,7 @@
     owner: "{{ run_as_user }}"
     group: "{{ run_as_user }}"
     recurse: yes
-  when: "{{ false if run_as_user == ansible_user else true }}"
+  when: run_as_user != ansible_user
 
 - name: Find all directories
   find:
