@@ -34,13 +34,13 @@
     recalculate_mask: no_mask
   when: run_as_user != ansible_user
 
-# setfacl --default --no-mask --recursive -m g::rw example.org/web
+# setfacl --default --no-mask --recursive -m g::rwX example.org/web
 - name: Set default ACLs for files under the webroot
   acl:
     path: "{{ webroot }}"
     entity: "{{ run_as_user }}"
     etype: group
-    permissions: rw
+    permissions: rwX
     recursive: yes
     default: yes
     state: present
@@ -72,10 +72,10 @@
     file_type: directory
   register: directories
 
-- name: Set sticky bit on directories
+- name: Set sticky bit and execute on directories
   file:
     path: "{{ item.path }}"
-    mode: g+s
+    mode: g+xs
   with_items: "{{ directories.files }}"
 
 - name: Find all static assets
