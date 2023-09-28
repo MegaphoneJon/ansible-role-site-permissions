@@ -47,6 +47,18 @@
     recalculate_mask: no_mask
   when: run_as_user != ansible_user
 
+  # setfacl --no-mask --recursive -m g::rwX example.org/web
+- name: Set ACLs for files under the webroot
+  acl:
+    path: "{{ webroot }}"
+    entity: "{{ run_as_user }}"
+    etype: group
+    permissions: rwX
+    recursive: yes
+    state: present
+    recalculate_mask: no_mask
+  when: run_as_user != ansible_user
+
   # setfacl --mask --recursive -m m::r-x example.org/web
 - name: Set default mask correctly
   acl:
